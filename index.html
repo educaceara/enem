@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ENEM, Tô Dentro! - Codex Challenge</title>
+    <!-- Tailwind CSS CDN para um visual moderno e responsivo -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Ícones Lucide para UI -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Fundo branco suave */
+            color: #1f2937; /* Texto escuro */
+        }
+        
+        #app-container {
+            width: 100%;
+            max-width: 640px;
+            min-height: 90vh;
+            margin: 2rem auto;
+            background-color: white; 
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 87, 183, 0.2); /* Sombra azul suave */
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Cores do Tema */
+        .color-blue { color: #0057b7; } /* Azul oficial */
+        .bg-blue-main { background-color: #0057b7; }
+        .text-yellow-main { color: #ffd60a; } /* Amarelo oficial */
+        .border-blue-main { border-color: #0057b7; }
+
+        /* Estilo do Botão Principal */
+        .main-button {
+            padding: 1rem 1.5rem;
+            font-size: 1.125rem;
+            font-weight: 700;
+            border-radius: 0.75rem;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Estilo para o Modo Foco (Combo) */
+        .foco-mode {
+            box-shadow: 0 0 35px rgba(255, 214, 10, 0.9) !important; /* Efeito neon dourado forte */
+            animation: pulse-focus 1s infinite alternate;
+        }
+
+        @keyframes pulse-focus {
+            from { box-shadow: 0 0 35px rgba(255, 214, 10, 0.4); }
+            to { box-shadow: 0 0 45px rgba(255, 214, 10, 0.9); }
+        }
+
+        /* Estilo do Flashcard */
+        #flashcard {
+            min-height: 300px;
+            cursor: pointer;
+            perspective: 1000px; 
+            transition: transform 0.5s;
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.8s;
+            transform-style: preserve-3d;
+        }
+
+        .is-flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            border-radius: 1rem;
+            /* Fundo branco e borda azul para a frente */
+            background-color: white;
+            border: 3px solid #0057b7;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-back-correct {
+            transform: rotateY(180deg);
+            background-color: #4ade80; /* Verde sucesso */
+            color: #166534;
+            border: 3px solid #166534;
+        }
+        
+        .card-back-wrong {
+            transform: rotateY(180deg);
+            background-color: #f87171; /* Vermelho erro */
+            color: #7f1d1d;
+            border: 3px solid #7f1d1d;
+        }
+        
+        /* Feedback Visual */
+        .critical-feedback {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Inter', sans-serif;
+            color: #ffd60a;
+            text-shadow: 0 0 10px #0057b7;
+            animation: zoomOut 1s ease-out forwards;
+            pointer-events: none;
+            z-index: 1000;
+            font-weight: 900; /* Extra bold */
+            font-size: 3rem;
+            opacity: 0;
+            text-align: center;
+        }
+
+        @keyframes zoomOut {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
+            50% { opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+        }
+    </style>
+</head>
+<body class="p-4">
+
+    <div id="app-container">
+        
+        <!-- HEADER (Back Button & Game HUD) -->
+        <header id="app-header" class="mb-6 flex justify-between items-center h-10">
+            <button id="back-button" class="text-blue-main hover:text-blue-700 transition hidden" onclick="navigate('menu')">
+                <i data-lucide="arrow-left" class="w-6 h-6"></i>
+            </button>
+            <!-- HUD do Jogo (Visível apenas na tela de jogo) -->
+            <div id="game-hud" class="flex justify-around flex-1 space-x-2 hidden">
+                 <div class="flex items-center space-x-1">
+                    <i data-lucide="zap" class="w-5 h-5 text-yellow-main"></i>
+                    <span class="text-xs text-gray-500">Combo:</span>
+                    <span id="combo-display" class="font-bold text-lg color-blue">0x</span>
+                </div>
+                <div class="flex items-center space-x-1">
+                    <i data-lucide="check" class="w-5 h-5 text-green-500"></i>
+                    <span class="text-xs text-gray-500">Acertos:</span>
+                    <span id="score-display" class="font-bold text-lg color-blue">0</span>
+                </div>
+                <div class="flex items-center space-x-1">
+                    <i data-lucide="x" class="w-5 h-5 text-red-500"></i>
+                    <span class="text-xs text-gray-500">Erros:</span>
+                    <span id="errors-display" class="font-bold text-lg color-blue">0</span>
+                </div>
+            </div>
+            <div class="w-6"></div> <!-- Espaçador para centralizar o HUD -->
+        </header>
+
+        <!-- CONTAINER PRINCIPAL DE TELAS -->
+        <main id="screen-container" class="flex-grow flex flex-col justify-center items-center p-4">
+            <!-- As telas serão injetadas aqui -->
+        </main>
+    </div>
+
+    <!-- Container para Feedback Crítico (Pop-ups flutuantes) -->
+    <div id="feedback-layer"></div>
+
+    <!-- Modal de Saída/Créditos, etc. -->
+    <div id="modal-container" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 hidden">
+        <div id="modal-box" class="bg-white p-8 rounded-xl shadow-2xl max-w-sm w-11/12 text-center border-4 border-blue-main">
+            <h3 id="modal-title" class="text-2xl font-bold color-blue mb-4"></h3>
+            <p id="modal-text" class="text-gray-700 mb-6"></p>
+            <button id="modal-close" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg transition" onclick="hideModal()">Fechar</button>
+        </div>
+    </div>
+
+
+<script>
+    // --- Configurações do Jogo ---
+    const FLASHCARDS = [
+        // Categoria 1: Pode Levar (CORRETO) - Resposta esperada do usuário: CORRETO
+        { category: "CORRETO", question: "Caneta esferográfica de TINTA PRETA, fabricada em material transparente.", answer: "Permitido. É o único tipo de caneta aceito para preencher o gabarito.", icon: "pen-tool" },
+        { category: "CORRETO", question: "Documento de Identidade original com foto.", answer: "Obrigatório. O documento deve ser o original (RG, CNH, Passaporte, etc.).", icon: "id-card" },
+        { category: "CORRETO", question: "Garrafa de água transparente e alimentos industrializados.", answer: "Permitido. É crucial para manter a hidratação e a energia durante a prova.", icon: "coffee" },
+        { category: "CORRETO", question: "Declaração de Comparecimento (se precisar comprovar presença no trabalho).", answer: "Permitido. Lembre-se de imprimir ANTES da prova.", icon: "file-text" },
+
+        // Categoria 2: Não Pode Levar (PROIBIDO) - Resposta esperada do usuário: ERRO
+        { category: "PROIBIDO", question: "Celular, tablet, relógio, fones de ouvido (mesmo desligados).", answer: "PROIBIDO. Qualquer equipamento eletrônico deve ser desligado e guardado no envelope lacrado.", icon: "smartphone" },
+        { category: "PROIBIDO", question: "Chapéu, boné, gorro, óculos escuros (sem justificativa médica).", answer: "PROIBIDO. Não é permitido o uso de artigos de chapelaria.", icon: "hat" },
+        { category: "PROIBIDO", question: "Lápis, lapiseira, borracha, régua.", answer: "PROIBIDO. Apenas a caneta preta transparente é permitida para uso na prova.", icon: "pencil" },
+        { category: "PROIBIDO", question: "Consultar qualquer material de estudo ou anotação.", answer: "PROIBIDO. A prova é individual e sem consulta.", icon: "book-open" },
+    ];
+
+    // --- Variáveis de Estado ---
+    let score = 0;
+    let errors = 0;
+    let combo = 0;
+    let currentCardIndex = -1;
+    let deck = [];
+    let isFlipped = false;
+    let isPlaying = false;
+    let isFocusMode = false;
+    let currentState = 'menu';
+
+    // --- Elementos do DOM ---
+    const appContainer = document.getElementById('app-container');
+    const screenContainer = document.getElementById('screen-container');
+    const backButton = document.getElementById('back-button');
+    const gameHud = document.getElementById('game-hud');
+    const comboDisplay = document.getElementById('combo-display');
+    const scoreDisplay = document.getElementById('score-display');
+    const errorsDisplay = document.getElementById('errors-display');
+    const feedbackLayer = document.getElementById('feedback-layer');
+    const modalContainer = document.getElementById('modal-container');
+    const modalTitle = document.getElementById('modal-title');
+    const modalText = document.getElementById('modal-text');
+
+    // --- Funções de Navegação e Menu ---
+
+    function navigate(newState) {
+        currentState = newState;
+        screenContainer.innerHTML = '';
+        backButton.classList.add('hidden');
+        gameHud.classList.add('hidden');
+        appContainer.classList.remove('foco-mode');
+        isPlaying = false;
+        
+        // Finaliza o jogo se estiver voltando do modo de jogo
+        if (newState !== 'play') {
+            clearInterval(window.gameTimer);
+        }
+
+        switch (newState) {
+            case 'menu':
+                renderMenuScreen();
+                break;
+            case 'instructions':
+                backButton.classList.remove('hidden');
+                renderInstructionsScreen();
+                break;
+            case 'dicas':
+                backButton.classList.remove('hidden');
+                renderDicasScreen();
+                break;
+            case 'ranking':
+                backButton.classList.remove('hidden');
+                renderRankingScreen();
+                break;
+            case 'credits':
+                backButton.classList.remove('hidden');
+                renderCreditsScreen();
+                break;
+            case 'play':
+                gameHud.classList.remove('hidden');
+                backButton.classList.remove('hidden');
+                renderGameScreen();
+                startGame();
+                break;
+            default:
+                renderMenuScreen();
+        }
+        lucide.createIcons();
+    }
+
+    function renderMenuScreen() {
+        screenContainer.innerHTML = `
+            <h1 class="text-6xl md:text-8xl font-black color-blue mb-4 text-center">ENEM,</h1>
+            <h2 class="text-5xl md:text-7xl font-black text-yellow-main mb-8 text-center" style="text-shadow: 2px 2px #0057b7;">Tô Dentro!</h2>
+            <p class="text-center text-lg text-gray-600 mb-10 max-w-xs">Aceite o desafio e domine o Edital do ENEM. Sua missão: ser um **Agente Inclusivo** e garantir o dia perfeito de prova.</p>
+            <div class="flex flex-col space-y-4 w-full max-w-xs">
+                <button onclick="navigate('play')" class="main-button bg-green-500 hover:bg-green-600 text-white flex items-center justify-center">
+                    <i data-lucide="play" class="w-6 h-6 mr-2"></i> Jogar
+                </button>
+                <button onclick="navigate('instructions')" class="main-button bg-blue-main hover:bg-blue-700 text-white flex items-center justify-center">
+                    <i data-lucide="book-open" class="w-6 h-6 mr-2"></i> Instruções
+                </button>
+                <button onclick="navigate('dicas')" class="main-button bg-yellow-500 hover:bg-yellow-600 text-gray-800 flex items-center justify-center">
+                    <i data-lucide="lightbulb" class="w-6 h-6 mr-2"></i> Dicas do ENEM
+                </button>
+                <button onclick="navigate('ranking')" class="main-button bg-gray-300 hover:bg-gray-400 text-gray-800 flex items-center justify-center">
+                    <i data-lucide="trophy" class="w-6 h-6 mr-2"></i> Ranking
+                </button>
+                <button onclick="navigate('credits')" class="main-button bg-gray-300 hover:bg-gray-400 text-gray-800 flex items-center justify-center">
+                    <i data-lucide="info" class="w-6 h-6 mr-2"></i> Créditos
+                </button>
+                <button onclick="showModal('Sair', 'Tem certeza que deseja sair? O seu progresso de pontuação local será mantido, mas a rodada atual será perdida.')" class="main-button bg-red-500 hover:bg-red-600 text-white flex items-center justify-center">
+                    <i data-lucide="log-out" class="w-6 h-6 mr-2"></i> Sair
+                </button>
+            </div>
+        `;
+    }
+
+    function renderInstructionsScreen() {
+        screenContainer.innerHTML = `
+            <h2 class="text-3xl font-bold color-blue mb-6">Instruções: Domine o Edital</h2>
+            <div class="bg-gray-100 p-6 rounded-xl shadow-inner text-gray-700 space-y-4">
+                <p class="text-lg font-semibold">Olá, Agente Inclusivo! Sua missão é simples: saber exatamente o que PODE e o que NÃO PODE levar para a prova do ENEM.</p>
+                
+                <h3 class="text-xl font-bold text-blue-main">Como Jogar:</h3>
+                <ul class="list-disc list-inside space-y-2 ml-4">
+                    <li>Um **Flashcard** aparecerá com um item ou uma ação.</li>
+                    <li>Selecione **'CORRETO'** se o item for **PERMITIDO** ou **OBRIGATÓRIO** pelo Edital.</li>
+                    <li>Selecione **'ERRO'** se o item for **PROIBIDO** ou uma falha de procedimento.</li>
+                    <li><span class="font-bold text-yellow-main">Dica:</span> Clique no cartão para virar e ver a resposta detalhada!</li>
+                </ul>
+
+                <h3 class="text-xl font-bold text-blue-main">Mecânicas de Gamificação:</h3>
+                <ul class="list-disc list-inside space-y-2 ml-4">
+                    <li><span class="font-bold text-green-500">Acerto Crítico:</span> Pontos extras e feedback visual por cada acerto.</li>
+                    <li><span class="font-bold text-yellow-500">Combo de Foco (x3):</span> Ao acertar 3 vezes seguidas, você entra em Modo Foco! A pontuação dobra até o combo ser quebrado.</li>
+                    <li><span class="font-bold text-red-500">Erro Crítico:</span> Zera o Combo e quebra o Modo Foco.</li>
+                </ul>
+                <p class="text-center mt-6"><button onclick="navigate('play')" class="main-button bg-green-500 hover:bg-green-600 text-white">Começar Desafio!</button></p>
+            </div>
+        `;
+    }
+
+    function renderDicasScreen() {
+        screenContainer.innerHTML = `
+            <h2 class="text-3xl font-bold color-blue mb-6">Dicas do ENEM: O Código do Sucesso</h2>
+            <div class="bg-gray-100 p-6 rounded-xl shadow-inner text-gray-700 space-y-4">
+                <p class="text-lg font-semibold text-blue-main">Revisar o Edital é a sua principal estratégia. Aqui estão 3 dicas cruciais:</p>
+                
+                <div class="p-3 bg-yellow-100 border-l-4 border-yellow-main rounded">
+                    <h3 class="font-bold text-xl text-yellow-main mb-1">Dica 1: A Logística é 50% da Prova</h3>
+                    <p>Visite o local de prova antes, confira o trânsito e programe-se para chegar com no mínimo uma hora de antecedência. Atraso = Desclassificação, sem exceções!</p>
+                </div>
+                
+                <div class="p-3 bg-blue-100 border-l-4 border-blue-main rounded">
+                    <h3 class="font-bold text-xl color-blue mb-1">Dica 2: Documentos e Caneta</h3>
+                    <p>Só leve caneta preta, de corpo transparente. O documento deve ser o original e com foto. Deixar o celular desligado dentro do envelope lacrado é OBRIGATÓRIO, mesmo durante o lanche.</p>
+                </div>
+
+                <div class="p-3 bg-green-100 border-l-4 border-green-500 rounded">
+                    <h3 class="font-bold text-xl text-green-600 mb-1">Dica 3: Redação</h3>
+                    <p>A frase de segurança do gabarito deve ser transcrita na folha de redação. Errar isso anula a sua redação. Foco total nos detalhes!</p>
+                </div>
+            </div>
+        `;
+    }
+    
+    function renderRankingScreen() {
+        let leaderboard = JSON.parse(localStorage.getItem('codexLeaderboard') || '[]');
+        
+        // Ensure data integrity before displaying
+        leaderboard.sort((a, b) => b.score - a.score || a.errors - b.errors);
+
+        let rankList = leaderboard.map((entry, index) => `
+            <li class="flex justify-between items-center p-3 border-b border-gray-200">
+                <span class="font-black text-xl w-8 text-center text-yellow-main">${index + 1}</span>
+                <span class="flex-1 font-semibold text-lg text-blue-main">${entry.level || 'Concorrente'}</span>
+                <span class="font-bold text-green-600 w-16 text-right">${entry.score}</span>
+                <span class="text-red-500 w-16 text-right">${entry.errors}</span>
+            </li>
+        `).join('');
+
+        if (leaderboard.length === 0) {
+            rankList = '<li class="p-4 text-center text-gray-500">Nenhum Agente Inclusivo registrado ainda. Jogue para entrar no Ranking!</li>';
+        }
+
+        screenContainer.innerHTML = `
+            <h2 class="text-3xl font-bold color-blue mb-6">Ranking de Agentes Inclusivos</h2>
+            <div class="bg-gray-100 p-6 rounded-xl shadow-inner w-full">
+                <div class="flex justify-between font-bold border-b-2 border-blue-main pb-2 mb-2">
+                    <span class="w-8 text-center">#</span>
+                    <span class="flex-1">Nível</span>
+                    <span class="w-16 text-right">Acertos</span>
+                    <span class="w-16 text-right">Erros</span>
+                </div>
+                <ul class="list-none space-y-1">
+                    ${rankList}
+                </ul>
+            </div>
+            <button onclick="localStorage.removeItem('codexLeaderboard'); navigate('ranking')" class="mt-4 text-sm text-red-500 hover:text-red-700 transition">
+                Limpar Ranking Local
+            </button>
+        `;
+    }
+    
+    function renderCreditsScreen() {
+        screenContainer.innerHTML = `
+            <h2 class="text-3xl font-bold color-blue mb-6">Créditos de Desenvolvimento</h2>
+            <div class="bg-gray-100 p-6 rounded-xl shadow-inner text-gray-700 text-center space-y-4">
+                <p class="text-lg font-semibold">ENEM, Tô Dentro! - Codex Challenge</p>
+                <p>Desenvolvido por Gemini (Modelo de Linguagem Grande do Google) como ferramenta de gamificação para revisão do Edital do ENEM.</p>
+                <p class="font-bold text-blue-main">Recursos Utilizados:</p>
+                <ul class="list-disc list-inside space-y-1 ml-4 text-left inline-block">
+                    <li>Design: Tailwind CSS (Tema Azul/Amarelo)</li>
+                    <li>Tipografia: Inter Font</li>
+                    <li>Ícones: Lucide Icons</li>
+                    <li>Inspiração: Cultura Geek e Jogos de "Critical Hit"</li>
+                </ul>
+                <p class="mt-4">Missão concluída com sucesso. Agora, estude o conteúdo!</p>
+            </div>
+        `;
+    }
+
+    // --- Funções do Jogo (Flashcards) ---
+
+    function renderGameScreen() {
+        screenContainer.innerHTML = `
+            <div id="flashcard" class="w-full max-w-md mb-6">
+                <div class="card-inner shadow-xl">
+                    <!-- FRENTE DO CARD (PERGUNTA) -->
+                    <div id="card-front" class="card-face text-gray-800">
+                        <i id="card-icon" data-lucide="help-circle" class="w-16 h-16 mb-4 color-blue"></i>
+                        <h2 class="text-2xl font-bold mb-4 color-blue">Pode ou Não Pode?</h2>
+                        <p id="question-text" class="text-xl text-center font-semibold"></p>
+                    </div>
+                    
+                    <!-- VERSO DO CARD (RESPOSTA) -->
+                    <div id="card-back" class="card-face text-center">
+                        <h2 class="text-2xl font-bold mb-4">VEREDICTO:</h2>
+                        <div id="verdict-icon" class="mb-4"></div>
+                        <p id="answer-text" class="text-3xl font-black mb-2"></p>
+                        <p id="details-text" class="text-base mt-2 font-medium"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BOTÕES DE AÇÃO -->
+            <div id="choice-buttons" class="grid grid-cols-2 gap-4 w-full max-w-sm">
+                <button id="correct-button" class="main-button bg-green-500 hover:bg-green-600 text-white flex items-center justify-center text-base" onclick="handleChoice(true)">
+                    <i data-lucide="check" class="w-5 h-5 mr-1"></i> PODE
+                </button>
+                <button id="wrong-button" class="main-button bg-red-500 hover:bg-red-600 text-white flex items-center justify-center text-base" onclick="handleChoice(false)">
+                    <i data-lucide="x" class="w-5 h-5 mr-1"></i> NÃO PODE
+                </button>
+            </div>
+            <p id="hint-text" class="text-sm text-gray-500 italic text-center mt-4 hidden">Clique no card para ver a resposta!</p>
+        `;
+    }
+
+    function shuffleDeck() {
+        deck = [...FLASHCARDS];
+        for (let i = deck.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [deck[i], deck[j]] = [deck[j], deck[i]];
+        }
+    }
+
+    function startGame() {
+        isPlaying = true;
+        score = 0;
+        errors = 0;
+        combo = 0;
+        isFocusMode = false;
+        shuffleDeck();
+        currentCardIndex = -1;
+        updateUI();
+        nextCard();
+        
+        // Mostra a dica
+        document.getElementById('hint-text').classList.remove('hidden');
+    }
+
+    function nextCard() {
+        const cardInner = document.querySelector('.card-inner');
+        if (!cardInner) return; // Segurança caso a tela seja trocada
+
+        isFlipped = false;
+        cardInner.classList.remove('is-flipped');
+        
+        currentCardIndex++;
+        
+        if (currentCardIndex >= deck.length) {
+            endGame();
+            return;
+        }
+
+        const card = deck[currentCardIndex];
+        
+        // Atualiza a frente
+        document.getElementById('question-text').textContent = card.question;
+        document.getElementById('card-icon').setAttribute('data-lucide', card.icon || 'help-circle');
+        
+        // Atualiza o verso
+        const isCorrectCategory = card.category === "CORRETO";
+        document.getElementById('answer-text').textContent = isCorrectCategory ? "PERMITIDO" : "PROIBIDO";
+        document.getElementById('details-text').textContent = card.answer;
+        
+        const cardBack = document.getElementById('card-back');
+        const verdictIcon = document.getElementById('verdict-icon');
+
+        if (card.category === "PROIBIDO") {
+            cardBack.className = 'card-face card-back-wrong';
+            verdictIcon.innerHTML = `<i data-lucide="skull" class="w-10 h-10 text-red-900"></i>`;
+        } else {
+            cardBack.className = 'card-face card-back-correct';
+            verdictIcon.innerHTML = `<i data-lucide="check-circle" class="w-10 h-10 text-green-900"></i>`;
+        }
+        lucide.createIcons();
+    }
+
+    function flipCard() {
+        if (!isPlaying) return;
+        const cardInner = document.querySelector('.card-inner');
+        if (isFlipped) return; // Não vira de volta se já estiver virado
+
+        isFlipped = true;
+        cardInner.classList.add('is-flipped');
+    }
+    
+    // Adiciona o listener para o card flip
+    document.addEventListener('click', (e) => {
+        if (e.target.closest('#flashcard')) {
+            flipCard();
+        }
+    });
+
+
+    function handleChoice(isUserCorrect) {
+        if (!isPlaying || isFlipped) return; 
+        
+        const card = deck[currentCardIndex];
+        const isCardCorrect = card.category === "CORRETO";
+        
+        let isAnswerCorrect = (isUserCorrect === isCardCorrect);
+
+        flipCard(); // Vira o card imediatamente
+        
+        if (isAnswerCorrect) {
+            score++;
+            combo++;
+            spawnFeedback('ACERTO CRÍTICO!', '#0057b7');
+            if (combo >= 3 && !isFocusMode) {
+                activateFocusMode();
+            }
+        } else {
+            errors++;
+            combo = 0; 
+            spawnFeedback('ERRO CRÍTICO!', '#f87171');
+            if (isFocusMode) {
+                deactivateFocusMode();
+            }
+        }
+        
+        updateUI();
+
+        // Aguarda 1.5 segundos para o jogador ler a resposta e passa para o próximo card
+        setTimeout(nextCard, 1500);
+    }
+    
+    function activateFocusMode() {
+        isFocusMode = true;
+        appContainer.classList.add('foco-mode');
+        spawnFeedback('FOCO X2!', '#ffd60a');
+    }
+    
+    function deactivateFocusMode() {
+        isFocusMode = false;
+        appContainer.classList.remove('foco-mode');
+    }
+
+    function spawnFeedback(text, color) {
+        const feedback = document.createElement('div');
+        feedback.textContent = text;
+        feedback.className = 'critical-feedback';
+        feedback.style.color = color;
+        feedbackLayer.appendChild(feedback);
+
+        setTimeout(() => feedback.remove(), 1000);
+    }
+
+    function updateUI() {
+        const currentScore = isFocusMode ? score * 2 : score;
+        
+        comboDisplay.textContent = `${combo}x`;
+        scoreDisplay.textContent = currentScore;
+        errorsDisplay.textContent = errors;
+    }
+
+    function endGame() {
+        isPlaying = false;
+        const finalScore = isFocusMode ? score * 2 : score;
+        
+        const isVictory = finalScore > errors;
+        
+        const title = isVictory ? "Parabéns, Agente!" : "Atenção, Agente!";
+        const message = isVictory 
+            ? `Parabéns! Você está pronto para o ENEM 2025! Sua pontuação final é ${finalScore} acertos (com ${errors} erros).`
+            : `Não desanime! Revise o Edital e tente novamente. Sua pontuação é ${finalScore} acertos (com ${errors} erros).`;
+        const buttonText = "Voltar ao Menu Principal";
+        
+        saveScore(finalScore, errors);
+        
+        // Renderiza a tela de feedback final (simulando a tela de vitória/erro)
+        screenContainer.innerHTML = `
+            <div class="text-center p-6 rounded-xl w-full max-w-xs ${isVictory ? 'bg-green-100 border-4 border-green-500' : 'bg-red-100 border-4 border-red-500'}">
+                <i data-lucide="${isVictory ? 'award' : 'alert-triangle'}" class="w-16 h-16 mb-4 ${isVictory ? 'text-green-600' : 'text-red-600'} mx-auto"></i>
+                <h2 class="text-3xl font-black ${isVictory ? 'text-green-600' : 'text-red-600'} mb-2">${title}</h2>
+                <p class="text-lg text-gray-700 mb-6">${message}</p>
+                <button onclick="navigate('menu')" class="main-button ${isVictory ? 'bg-green-500 hover:bg-green-600' : 'bg-blue-main hover:bg-blue-700'} text-white">
+                    ${buttonText}
+                </button>
+            </div>
+        `;
+        lucide.createIcons();
+    }
+    
+    function getKnowledgeLevel(score, errors) {
+        const total = FLASHCARDS.length;
+        const ratio = score / total;
+        
+        if (ratio >= 0.9 && errors === 0) return "Mestre do Edital (100%!)";
+        if (ratio >= 0.7) return "Estrategista de Prova";
+        if (ratio >= 0.5) return "Preparado (Pode Passar)";
+        return "Candidato de Primeira Viagem";
+    }
+    
+    function saveScore(finalScore, finalErrors) {
+        let leaderboard = JSON.parse(localStorage.getItem('codexLeaderboard') || '[]');
+        
+        leaderboard.push({
+            score: finalScore,
+            errors: finalErrors,
+            level: getKnowledgeLevel(finalScore, finalErrors),
+            date: new Date().toLocaleDateString('pt-BR')
+        });
+        
+        leaderboard.sort((a, b) => b.score - a.score || a.errors - b.errors);
+        leaderboard = leaderboard.slice(0, 5); 
+        localStorage.setItem('codexLeaderboard', JSON.stringify(leaderboard));
+    }
+    
+    function showModal(title, text) {
+        modalTitle.textContent = title;
+        modalText.textContent = text;
+        modalContainer.classList.remove('hidden');
+    }
+    
+    function hideModal() {
+        modalContainer.classList.add('hidden');
+    }
+
+
+    // --- Inicialização ---
+    window.onload = () => {
+        navigate('menu'); // Inicia na tela do Menu Principal
+        lucide.createIcons(); 
+    };
+
+</script>
+
+</body>
+</html>
