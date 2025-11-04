@@ -3,40 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ENEM, Tô Dentro! - Codex Challenge</title>
-    <!-- Tailwind CSS CDN para um visual moderno e responsivo -->
+    <title>ENEM, Tô Dentro! - Veja o que PODE e o que NÃO PODE no dia da prova.</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Ícones Lucide para UI -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
         
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f0f4f8; /* Fundo branco suave */
-            color: #1f2937; /* Texto escuro */
+            background: linear-gradient(135deg, #0057b7 0%, #003d82 100%);
+            color: #1f2937;
+            min-height: 100vh;
         }
         
         #app-container {
             width: 100%;
-            max-width: 640px;
+            max-width: 680px; 
             min-height: 90vh;
-            margin: 2rem auto;
+            margin: 1.5rem auto;
             background-color: white; 
             border-radius: 1.5rem;
-            box-shadow: 0 10px 30px rgba(0, 87, 183, 0.2); /* Sombra azul suave */
-            padding: 1.5rem;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            padding: 1.5rem 1rem;
             display: flex;
             flex-direction: column;
+            position: relative;
         }
 
-        /* Cores do Tema */
-        .color-blue { color: #0057b7; } /* Azul oficial */
+        @media (min-width: 640px) {
+            #app-container {
+                padding: 2rem;
+            }
+        }
+
+        .color-blue { color: #0057b7; }
         .bg-blue-main { background-color: #0057b7; }
-        .text-yellow-main { color: #ffd60a; } /* Amarelo oficial */
+        .text-yellow-main { color: #ffd60a; }
         .border-blue-main { border-color: #0057b7; }
 
-        /* Estilo do Botão Principal */
         .main-button {
             padding: 1rem 1.5rem;
             font-size: 1.125rem;
@@ -46,70 +53,103 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
-        /* Estilo para o Modo Foco (Combo) */
         .foco-mode {
-            box-shadow: 0 0 35px rgba(255, 214, 10, 0.9) !important; /* Efeito neon dourado forte */
+            box-shadow: 0 0 40px rgba(255, 214, 10, 0.9) !important;
             animation: pulse-focus 1s infinite alternate;
         }
 
         @keyframes pulse-focus {
-            from { box-shadow: 0 0 35px rgba(255, 214, 10, 0.4); }
-            to { box-shadow: 0 0 45px rgba(255, 214, 10, 0.9); }
+            from { box-shadow: 0 0 40px rgba(255, 214, 10, 0.4); }
+            to { box-shadow: 0 0 50px rgba(255, 214, 10, 0.9); }
         }
 
-        /* Estilo do Flashcard */
+        /* Estilo do Flashcard Simplificado */
         #flashcard {
-            min-height: 300px;
-            cursor: pointer;
-            perspective: 1000px; 
-            transition: transform 0.5s;
-        }
-
-        .card-inner {
-            position: relative;
+            min-height: 320px;
             width: 100%;
-            height: 100%;
-            text-align: center;
-            transition: transform 0.8s;
-            transform-style: preserve-3d;
-        }
-
-        .is-flipped .card-inner {
-            transform: rotateY(180deg);
+            margin-bottom: 1.5rem;
         }
 
         .card-face {
-            position: absolute;
             width: 100%;
             height: 100%;
-            backface-visibility: hidden;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             padding: 2rem;
-            border-radius: 1rem;
-            /* Fundo branco e borda azul para a frente */
-            background-color: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
             border: 3px solid #0057b7;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
-        .card-back-correct {
-            transform: rotateY(180deg);
-            background-color: #4ade80; /* Verde sucesso */
-            color: #166534;
-            border: 3px solid #166534;
+        /* HUD Fixo (Sticky) */
+        .sticky-hud {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid #e5e7eb;
+            padding: 0.75rem 0;
+            margin: -1.5rem -1rem 1.5rem -1rem;
+            border-radius: 1.5rem 1.5rem 0 0;
         }
         
-        .card-back-wrong {
-            transform: rotateY(180deg);
-            background-color: #f87171; /* Vermelho erro */
-            color: #7f1d1d;
-            border: 3px solid #7f1d1d;
+        @media (min-width: 640px) {
+            .sticky-hud {
+                margin: -2rem -2rem 1.5rem -2rem;
+            }
+        }
+
+        #timer-bar-container {
+            position: relative;
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+
+        #timer-bar {
+            height: 10px;
+            background-color: #e5e7eb;
+            overflow: hidden;
+            border-radius: 5px;
+            margin: 0 1rem;
+        }
+
+        @media (min-width: 640px) {
+            #timer-bar {
+                margin: 0 2rem;
+            }
+        }
+
+        #timer-progress {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #a855f7, #8b5cf6);
+            transition: width 1s linear;
+            box-shadow: 0 0 10px rgba(168, 85, 247, 0.8);
+        }
+
+        .hud-value {
+            font-size: 1.25rem; 
         }
         
-        /* Feedback Visual */
+        .hud-icon {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+
+        @media (min-width: 640px) {
+            .hud-value {
+                font-size: 1.5rem; 
+            }
+            .hud-icon {
+                width: 1.5rem;
+                height: 1.5rem;
+            }
+        }
+        
         .critical-feedback {
             position: fixed;
             top: 50%;
@@ -117,12 +157,12 @@
             transform: translate(-50%, -50%);
             font-family: 'Inter', sans-serif;
             color: #ffd60a;
-            text-shadow: 0 0 10px #0057b7;
-            animation: zoomOut 1s ease-out forwards;
+            text-shadow: 0 0 15px rgba(0, 87, 183, 1);
+            animation: zoomOut 1.2s ease-out forwards;
             pointer-events: none;
             z-index: 1000;
-            font-weight: 900; /* Extra bold */
-            font-size: 3rem;
+            font-weight: 900; 
+            font-size: 4rem; 
             opacity: 0;
             text-align: center;
         }
@@ -130,50 +170,107 @@
         @keyframes zoomOut {
             0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
             50% { opacity: 1; }
-            100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(2.5); opacity: 0; }
+        }
+        
+        /* Estilos para acessibilidade */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+        
+        /* Estilos para o modo de revisão */
+        .review-item {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border-left: 4px solid;
+        }
+        
+        .review-correct {
+            background-color: #f0fdf4;
+            border-left-color: #16a34a;
+        }
+        
+        .review-incorrect {
+            background-color: #fef2f2;
+            border-left-color: #dc2626;
+        }
+        
+        /* Animação de entrada para cartões */
+        @keyframes cardAppear {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .card-appear {
+            animation: cardAppear 0.5s ease-out forwards;
         }
     </style>
 </head>
-<body class="p-4">
+<body class="p-2 sm:p-4">
 
     <div id="app-container">
-        
-        <!-- HEADER (Back Button & Game HUD) -->
-        <header id="app-header" class="mb-6 flex justify-between items-center h-10">
-            <button id="back-button" class="text-blue-main hover:text-blue-700 transition hidden" onclick="navigate('menu')">
-                <i data-lucide="arrow-left" class="w-6 h-6"></i>
-            </button>
-            <!-- HUD do Jogo (Visível apenas na tela de jogo) -->
-            <div id="game-hud" class="flex justify-around flex-1 space-x-2 hidden">
-                 <div class="flex items-center space-x-1">
-                    <i data-lucide="zap" class="w-5 h-5 text-yellow-main"></i>
-                    <span class="text-xs text-gray-500">Combo:</span>
-                    <span id="combo-display" class="font-bold text-lg color-blue">0x</span>
-                </div>
-                <div class="flex items-center space-x-1">
-                    <i data-lucide="check" class="w-5 h-5 text-green-500"></i>
-                    <span class="text-xs text-gray-500">Acertos:</span>
-                    <span id="score-display" class="font-bold text-lg color-blue">0</span>
-                </div>
-                <div class="flex items-center space-x-1">
-                    <i data-lucide="x" class="w-5 h-5 text-red-500"></i>
-                    <span class="text-xs text-gray-500">Erros:</span>
-                    <span id="errors-display" class="font-bold text-lg color-blue">0</span>
+        <div id="sticky-hud" class="sticky-hud hidden">
+            <div id="timer-bar-container">
+                <div id="timer-bar">
+                    <div id="timer-progress" style="width: 100%;"></div>
                 </div>
             </div>
-            <div class="w-6"></div> <!-- Espaçador para centralizar o HUD -->
+            
+            <div id="game-hud" class="flex justify-between px-4">
+                <div class="flex items-center space-x-1">
+                    <i data-lucide="zap" class="hud-icon text-yellow-main" aria-hidden="true"></i>
+                    <span class="text-xs text-gray-500 hidden sm:inline">Combo:</span>
+                    <span id="combo-display" class="font-black hud-value color-blue">0x</span>
+                    <span class="sr-only">Combo atual: 0 vezes</span>
+                </div>
+                
+                <div class="flex items-center space-x-1">
+                    <i data-lucide="check" class="hud-icon text-green-500" aria-hidden="true"></i>
+                    <span class="text-xs text-gray-500 hidden sm:inline">Acertos:</span>
+                    <span id="score-display" class="font-black hud-value text-green-600">0</span>
+                    <span class="sr-only">Acertos: 0</span>
+                </div>
+                
+                <div class="flex items-center space-x-1">
+                    <i data-lucide="x" class="hud-icon text-red-500" aria-hidden="true"></i>
+                    <span class="text-xs text-gray-500 hidden sm:inline">Erros:</span>
+                    <span id="errors-display" class="font-black hud-value text-red-600">0</span>
+                    <span class="sr-only">Erros: 0</span>
+                </div>
+                
+                <div class="flex items-center space-x-1">
+                    <i data-lucide="hash" class="hud-icon color-blue" aria-hidden="true"></i>
+                    <span class="text-xs text-gray-500 hidden sm:inline">Q:</span>
+                    <span id="question-count-display" class="font-black hud-value color-blue">0/15</span>
+                    <span class="sr-only">Questão 0 de 15</span>
+                </div>
+            </div>
+        </div>
+
+        <header id="app-header" class="mb-6 flex justify-between items-center h-10">
+            <button id="back-button" class="text-blue-main hover:text-blue-700 transition hidden" onclick="navigate('menu')" aria-label="Voltar">
+                <i data-lucide="arrow-left" class="w-6 h-6"></i>
+            </button>
+            
+            <div class="w-6 hidden sm:block"></div>
         </header>
 
-        <!-- CONTAINER PRINCIPAL DE TELAS -->
-        <main id="screen-container" class="flex-grow flex flex-col justify-center items-center p-4">
-            <!-- As telas serão injetadas aqui -->
+        <main id="screen-container" class="flex-grow flex flex-col justify-center items-center p-0 sm:p-4">
+            <!-- Conteúdo será inserido aqui dinamicamente -->
         </main>
     </div>
 
-    <!-- Container para Feedback Crítico (Pop-ups flutuantes) -->
     <div id="feedback-layer"></div>
 
-    <!-- Modal de Saída/Créditos, etc. -->
     <div id="modal-container" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 hidden">
         <div id="modal-box" class="bg-white p-8 rounded-xl shadow-2xl max-w-sm w-11/12 text-center border-4 border-blue-main">
             <h3 id="modal-title" class="text-2xl font-bold color-blue mb-4"></h3>
@@ -182,473 +279,628 @@
         </div>
     </div>
 
-
-<script>
-    // --- Configurações do Jogo ---
-    const FLASHCARDS = [
-        // Categoria 1: Pode Levar (CORRETO) - Resposta esperada do usuário: CORRETO
-        { category: "CORRETO", question: "Caneta esferográfica de TINTA PRETA, fabricada em material transparente.", answer: "Permitido. É o único tipo de caneta aceito para preencher o gabarito.", icon: "pen-tool" },
-        { category: "CORRETO", question: "Documento de Identidade original com foto.", answer: "Obrigatório. O documento deve ser o original (RG, CNH, Passaporte, etc.).", icon: "id-card" },
-        { category: "CORRETO", question: "Garrafa de água transparente e alimentos industrializados.", answer: "Permitido. É crucial para manter a hidratação e a energia durante a prova.", icon: "coffee" },
-        { category: "CORRETO", question: "Declaração de Comparecimento (se precisar comprovar presença no trabalho).", answer: "Permitido. Lembre-se de imprimir ANTES da prova.", icon: "file-text" },
-
-        // Categoria 2: Não Pode Levar (PROIBIDO) - Resposta esperada do usuário: ERRO
-        { category: "PROIBIDO", question: "Celular, tablet, relógio, fones de ouvido (mesmo desligados).", answer: "PROIBIDO. Qualquer equipamento eletrônico deve ser desligado e guardado no envelope lacrado.", icon: "smartphone" },
-        { category: "PROIBIDO", question: "Chapéu, boné, gorro, óculos escuros (sem justificativa médica).", answer: "PROIBIDO. Não é permitido o uso de artigos de chapelaria.", icon: "hat" },
-        { category: "PROIBIDO", question: "Lápis, lapiseira, borracha, régua.", answer: "PROIBIDO. Apenas a caneta preta transparente é permitida para uso na prova.", icon: "pencil" },
-        { category: "PROIBIDO", question: "Consultar qualquer material de estudo ou anotação.", answer: "PROIBIDO. A prova é individual e sem consulta.", icon: "book-open" },
-    ];
-
-    // --- Variáveis de Estado ---
-    let score = 0;
-    let errors = 0;
-    let combo = 0;
-    let currentCardIndex = -1;
-    let deck = [];
-    let isFlipped = false;
-    let isPlaying = false;
-    let isFocusMode = false;
-    let currentState = 'menu';
-
-    // --- Elementos do DOM ---
-    const appContainer = document.getElementById('app-container');
-    const screenContainer = document.getElementById('screen-container');
-    const backButton = document.getElementById('back-button');
-    const gameHud = document.getElementById('game-hud');
-    const comboDisplay = document.getElementById('combo-display');
-    const scoreDisplay = document.getElementById('score-display');
-    const errorsDisplay = document.getElementById('errors-display');
-    const feedbackLayer = document.getElementById('feedback-layer');
-    const modalContainer = document.getElementById('modal-container');
-    const modalTitle = document.getElementById('modal-title');
-    const modalText = document.getElementById('modal-text');
-
-    // --- Funções de Navegação e Menu ---
-
-    function navigate(newState) {
-        currentState = newState;
-        screenContainer.innerHTML = '';
-        backButton.classList.add('hidden');
-        gameHud.classList.add('hidden');
-        appContainer.classList.remove('foco-mode');
-        isPlaying = false;
+    <script>
+        // --- Configurações do Jogo ---
+        const TIME_PER_QUESTION = 15;
+        const TOTAL_QUESTIONS = 15;
         
-        // Finaliza o jogo se estiver voltando do modo de jogo
-        if (newState !== 'play') {
-            clearInterval(window.gameTimer);
+        // Lista AUMENTADA de Flashcards
+        const ALL_FLASHCARDS = [
+            // CORRETO (Pode/Obrigatório Levar)
+            { 
+                category: "CORRETO", 
+                question: "Caneta esferográfica de TINTA PRETA, fabricada em material transparente.", 
+                answer: "Permitido. É o único tipo de caneta aceito para preencher o gabarito.", 
+                icon: "pen-tool"
+            },
+            { 
+                category: "CORRETO", 
+                question: "Documento de Identidade original com foto.", 
+                answer: "Obrigatório. O documento deve ser o original (RG, CNH, Passaporte, etc.).", 
+                icon: "id-card"
+            },
+            { 
+                category: "CORRETO", 
+                question: "Garrafa de água transparente e alimentos industrializados.", 
+                answer: "Permitido. É crucial para manter a hidratação e a energia durante a prova.", 
+                icon: "coffee"
+            },
+            { 
+                category: "CORRETO", 
+                question: "Declaração de Comparecimento (se precisar comprovar presença no trabalho).", 
+                answer: "Permitido. Lembre-se de imprimir ANTES da prova e pedir assinatura do chefe de sala.", 
+                icon: "file-text"
+            },
+            { 
+                category: "CORRETO", 
+                question: "Lanche pronto em embalagem lacrada, como barra de cereal ou biscoitos.", 
+                answer: "Permitido. Alimentos industrializados simples são aceitos.", 
+                icon: "box"
+            },
+            { 
+                category: "CORRETO", 
+                question: "O estudante deve chegar ao local de prova até as 13h, horário de Brasília.", 
+                answer: "Permitido. Os portões fecham às 13h.", 
+                icon: "clok"
+            },
+            { 
+                category: "CORRETO", 
+                question: "Uma caneta reserva (preta e transparente) no estojo transparente.", 
+                answer: "Permitido. É sempre bom ter um backup do item mais importante.", 
+                icon: "archive"
+            },
+            
+            // PROIBIDO (Não Pode Levar/Erro)
+            { 
+                category: "PROIBIDO", 
+                question: "Celular, tablet, relógio, fones de ouvido (mesmo desligados) fora do envelope lacrado.", 
+                answer: "PROIBIDO. Qualquer equipamento eletrônico deve ser desligado e guardado NO ENVELOPE lacrado.", 
+                icon: "smartphone"
+            },
+            { 
+                category: "PROIBIDO", 
+                question: "Chapéu, boné, gorro, óculos escuros (sem justificativa médica).", 
+                answer: "PROIBIDO. Não é permitido o uso de artigos de chapelaria.", 
+                icon: "hat"
+            },
+            { 
+                category: "PROIBIDO", 
+                question: "Lápis, lapiseira, borracha, régua.", 
+                answer: "PROIBIDO. Apenas a caneta preta transparente é permitida para uso na prova.", 
+                icon: "pencil"
+            },
+            { 
+                category: "PROIBIDO", 
+                question: "Consultar qualquer material de estudo ou anotação.", 
+                answer: "PROIBIDO. A prova é individual e sem consulta.", 
+                icon: "book-open"
+            },
+            { 
+                category: "PROIBIDO", 
+                question: "Caneta azul ou qualquer caneta com corpo opaco.", 
+                answer: "PROIBIDO. SOMENTE caneta preta E transparente.", 
+                icon: "alert-octagon"
+            },
+            { 
+                category: "PROIBIDO", 
+                question: "Chegar 10 minutos após o fechamento dos portões.", 
+                answer: "PROIBIDO. Atraso, mesmo de 1 segundo, resulta em desclassificação.", 
+                icon: "clock-off"
+            },
+            { 
+                category: "PROIBIDO", 
+                question: "Calculadora, mesmo que científica.", 
+                answer: "PROIBIDO. O uso de calculadora é proibido em qualquer etapa do exame.", 
+                icon: "calculator"
+            },
+            { 
+                category: "PROIBIDO", 
+                question: "É permitido usar caneta esferográfica de qualquer cor durante a prova.", 
+                answer: "PROIBIDO. Só é permitida caneta preta transparente.", 
+                icon: "pencil"
+            },
+        ];
+
+        // --- Variáveis de Estado ---
+        let score = 0;
+        let errors = 0;
+        let combo = 0;
+        let questionCount = 0;
+        let deck = [];
+        let isPlaying = false;
+        let isFocusMode = false;
+        let currentState = 'menu';
+        let currentCard;
+        let timerInterval;
+        let timeLeft = TIME_PER_QUESTION;
+        let gameHistory = []; // Para armazenar histórico de respostas
+
+        // --- Elementos do DOM ---
+        const appContainer = document.getElementById('app-container');
+        const screenContainer = document.getElementById('screen-container');
+        const backButton = document.getElementById('back-button');
+        const stickyHud = document.getElementById('sticky-hud');
+        const timerBarContainer = document.getElementById('timer-bar-container');
+        const comboDisplay = document.getElementById('combo-display');
+        const scoreDisplay = document.getElementById('score-display');
+        const errorsDisplay = document.getElementById('errors-display');
+        const questionCountDisplay = document.getElementById('question-count-display');
+        const feedbackLayer = document.getElementById('feedback-layer');
+        const modalContainer = document.getElementById('modal-container');
+        const modalTitle = document.getElementById('modal-title');
+        const modalText = document.getElementById('modal-text');
+
+        // --- Funções de Navegação e Menu ---
+
+        function navigate(newState) {
+            currentState = newState;
+            screenContainer.innerHTML = '';
+            backButton.classList.add('hidden');
+            stickyHud.classList.add('hidden');
+            appContainer.classList.remove('foco-mode');
+            isPlaying = false;
+            
+            // Limpa o cronômetro
+            if (timerInterval) clearInterval(timerInterval);
+
+            switch (newState) {
+                case 'menu':
+                    renderMenuScreen();
+                    break;
+                case 'instructions':
+                case 'ranking':
+                case 'credits':
+                    backButton.classList.remove('hidden');
+                    if (newState === 'instructions') renderInstructionsScreen();
+                    if (newState === 'ranking') renderRankingScreen();
+                    if (newState === 'credits') renderCreditsScreen();
+                    break;
+                case 'play':
+                    stickyHud.classList.remove('hidden');
+                    backButton.classList.remove('hidden');
+                    renderGameScreen();
+                    startGame();
+                    break;
+                default:
+                    renderMenuScreen();
+            }
+            lucide.createIcons();
         }
 
-        switch (newState) {
-            case 'menu':
-                renderMenuScreen();
-                break;
-            case 'instructions':
-                backButton.classList.remove('hidden');
-                renderInstructionsScreen();
-                break;
-            case 'dicas':
-                backButton.classList.remove('hidden');
-                renderDicasScreen();
-                break;
-            case 'ranking':
-                backButton.classList.remove('hidden');
-                renderRankingScreen();
-                break;
-            case 'credits':
-                backButton.classList.remove('hidden');
-                renderCreditsScreen();
-                break;
-            case 'play':
-                gameHud.classList.remove('hidden');
-                backButton.classList.remove('hidden');
-                renderGameScreen();
-                startGame();
-                break;
-            default:
-                renderMenuScreen();
-        }
-        lucide.createIcons();
-    }
-
-    function renderMenuScreen() {
-        screenContainer.innerHTML = `
-            <h1 class="text-6xl md:text-8xl font-black color-blue mb-4 text-center">ENEM,</h1>
-            <h2 class="text-5xl md:text-7xl font-black text-yellow-main mb-8 text-center" style="text-shadow: 2px 2px #0057b7;">Tô Dentro!</h2>
-            <p class="text-center text-lg text-gray-600 mb-10 max-w-xs">Aceite o desafio e domine o Edital do ENEM. Sua missão: ser um **Agente Inclusivo** e garantir o dia perfeito de prova.</p>
-            <div class="flex flex-col space-y-4 w-full max-w-xs">
-                <button onclick="navigate('play')" class="main-button bg-green-500 hover:bg-green-600 text-white flex items-center justify-center">
-                    <i data-lucide="play" class="w-6 h-6 mr-2"></i> Jogar
-                </button>
-                <button onclick="navigate('instructions')" class="main-button bg-blue-main hover:bg-blue-700 text-white flex items-center justify-center">
-                    <i data-lucide="book-open" class="w-6 h-6 mr-2"></i> Instruções
-                </button>
-                <button onclick="navigate('dicas')" class="main-button bg-yellow-500 hover:bg-yellow-600 text-gray-800 flex items-center justify-center">
-                    <i data-lucide="lightbulb" class="w-6 h-6 mr-2"></i> Dicas do ENEM
-                </button>
-                <button onclick="navigate('ranking')" class="main-button bg-gray-300 hover:bg-gray-400 text-gray-800 flex items-center justify-center">
-                    <i data-lucide="trophy" class="w-6 h-6 mr-2"></i> Ranking
-                </button>
-                <button onclick="navigate('credits')" class="main-button bg-gray-300 hover:bg-gray-400 text-gray-800 flex items-center justify-center">
-                    <i data-lucide="info" class="w-6 h-6 mr-2"></i> Créditos
-                </button>
-                <button onclick="showModal('Sair', 'Tem certeza que deseja sair? O seu progresso de pontuação local será mantido, mas a rodada atual será perdida.')" class="main-button bg-red-500 hover:bg-red-600 text-white flex items-center justify-center">
-                    <i data-lucide="log-out" class="w-6 h-6 mr-2"></i> Sair
-                </button>
-            </div>
-        `;
-    }
-
-    function renderInstructionsScreen() {
-        screenContainer.innerHTML = `
-            <h2 class="text-3xl font-bold color-blue mb-6">Instruções: Domine o Edital</h2>
-            <div class="bg-gray-100 p-6 rounded-xl shadow-inner text-gray-700 space-y-4">
-                <p class="text-lg font-semibold">Olá, Agente Inclusivo! Sua missão é simples: saber exatamente o que PODE e o que NÃO PODE levar para a prova do ENEM.</p>
-                
-                <h3 class="text-xl font-bold text-blue-main">Como Jogar:</h3>
-                <ul class="list-disc list-inside space-y-2 ml-4">
-                    <li>Um **Flashcard** aparecerá com um item ou uma ação.</li>
-                    <li>Selecione **'CORRETO'** se o item for **PERMITIDO** ou **OBRIGATÓRIO** pelo Edital.</li>
-                    <li>Selecione **'ERRO'** se o item for **PROIBIDO** ou uma falha de procedimento.</li>
-                    <li><span class="font-bold text-yellow-main">Dica:</span> Clique no cartão para virar e ver a resposta detalhada!</li>
-                </ul>
-
-                <h3 class="text-xl font-bold text-blue-main">Mecânicas de Gamificação:</h3>
-                <ul class="list-disc list-inside space-y-2 ml-4">
-                    <li><span class="font-bold text-green-500">Acerto Crítico:</span> Pontos extras e feedback visual por cada acerto.</li>
-                    <li><span class="font-bold text-yellow-500">Combo de Foco (x3):</span> Ao acertar 3 vezes seguidas, você entra em Modo Foco! A pontuação dobra até o combo ser quebrado.</li>
-                    <li><span class="font-bold text-red-500">Erro Crítico:</span> Zera o Combo e quebra o Modo Foco.</li>
-                </ul>
-                <p class="text-center mt-6"><button onclick="navigate('play')" class="main-button bg-green-500 hover:bg-green-600 text-white">Começar Desafio!</button></p>
-            </div>
-        `;
-    }
-
-    function renderDicasScreen() {
-        screenContainer.innerHTML = `
-            <h2 class="text-3xl font-bold color-blue mb-6">Dicas do ENEM: O Código do Sucesso</h2>
-            <div class="bg-gray-100 p-6 rounded-xl shadow-inner text-gray-700 space-y-4">
-                <p class="text-lg font-semibold text-blue-main">Revisar o Edital é a sua principal estratégia. Aqui estão 3 dicas cruciais:</p>
-                
-                <div class="p-3 bg-yellow-100 border-l-4 border-yellow-main rounded">
-                    <h3 class="font-bold text-xl text-yellow-main mb-1">Dica 1: A Logística é 50% da Prova</h3>
-                    <p>Visite o local de prova antes, confira o trânsito e programe-se para chegar com no mínimo uma hora de antecedência. Atraso = Desclassificação, sem exceções!</p>
-                </div>
-                
-                <div class="p-3 bg-blue-100 border-l-4 border-blue-main rounded">
-                    <h3 class="font-bold text-xl color-blue mb-1">Dica 2: Documentos e Caneta</h3>
-                    <p>Só leve caneta preta, de corpo transparente. O documento deve ser o original e com foto. Deixar o celular desligado dentro do envelope lacrado é OBRIGATÓRIO, mesmo durante o lanche.</p>
-                </div>
-
-                <div class="p-3 bg-green-100 border-l-4 border-green-500 rounded">
-                    <h3 class="font-bold text-xl text-green-600 mb-1">Dica 3: Redação</h3>
-                    <p>A frase de segurança do gabarito deve ser transcrita na folha de redação. Errar isso anula a sua redação. Foco total nos detalhes!</p>
-                </div>
-            </div>
-        `;
-    }
-    
-    function renderRankingScreen() {
-        let leaderboard = JSON.parse(localStorage.getItem('codexLeaderboard') || '[]');
-        
-        // Ensure data integrity before displaying
-        leaderboard.sort((a, b) => b.score - a.score || a.errors - b.errors);
-
-        let rankList = leaderboard.map((entry, index) => `
-            <li class="flex justify-between items-center p-3 border-b border-gray-200">
-                <span class="font-black text-xl w-8 text-center text-yellow-main">${index + 1}</span>
-                <span class="flex-1 font-semibold text-lg text-blue-main">${entry.level || 'Concorrente'}</span>
-                <span class="font-bold text-green-600 w-16 text-right">${entry.score}</span>
-                <span class="text-red-500 w-16 text-right">${entry.errors}</span>
-            </li>
-        `).join('');
-
-        if (leaderboard.length === 0) {
-            rankList = '<li class="p-4 text-center text-gray-500">Nenhum Agente Inclusivo registrado ainda. Jogue para entrar no Ranking!</li>';
-        }
-
-        screenContainer.innerHTML = `
-            <h2 class="text-3xl font-bold color-blue mb-6">Ranking de Agentes Inclusivos</h2>
-            <div class="bg-gray-100 p-6 rounded-xl shadow-inner w-full">
-                <div class="flex justify-between font-bold border-b-2 border-blue-main pb-2 mb-2">
-                    <span class="w-8 text-center">#</span>
-                    <span class="flex-1">Nível</span>
-                    <span class="w-16 text-right">Acertos</span>
-                    <span class="w-16 text-right">Erros</span>
-                </div>
-                <ul class="list-none space-y-1">
-                    ${rankList}
-                </ul>
-            </div>
-            <button onclick="localStorage.removeItem('codexLeaderboard'); navigate('ranking')" class="mt-4 text-sm text-red-500 hover:text-red-700 transition">
-                Limpar Ranking Local
-            </button>
-        `;
-    }
-    
-    function renderCreditsScreen() {
-        screenContainer.innerHTML = `
-            <h2 class="text-3xl font-bold color-blue mb-6">Créditos de Desenvolvimento</h2>
-            <div class="bg-gray-100 p-6 rounded-xl shadow-inner text-gray-700 text-center space-y-4">
-                <p class="text-lg font-semibold">ENEM, Tô Dentro! - Codex Challenge</p>
-                <p>Desenvolvido por Gemini (Modelo de Linguagem Grande do Google) como ferramenta de gamificação para revisão do Edital do ENEM.</p>
-                <p class="font-bold text-blue-main">Recursos Utilizados:</p>
-                <ul class="list-disc list-inside space-y-1 ml-4 text-left inline-block">
-                    <li>Design: Tailwind CSS (Tema Azul/Amarelo)</li>
-                    <li>Tipografia: Inter Font</li>
-                    <li>Ícones: Lucide Icons</li>
-                    <li>Inspiração: Cultura Geek e Jogos de "Critical Hit"</li>
-                </ul>
-                <p class="mt-4">Missão concluída com sucesso. Agora, estude o conteúdo!</p>
-            </div>
-        `;
-    }
-
-    // --- Funções do Jogo (Flashcards) ---
-
-    function renderGameScreen() {
-        screenContainer.innerHTML = `
-            <div id="flashcard" class="w-full max-w-md mb-6">
-                <div class="card-inner shadow-xl">
-                    <!-- FRENTE DO CARD (PERGUNTA) -->
-                    <div id="card-front" class="card-face text-gray-800">
-                        <i id="card-icon" data-lucide="help-circle" class="w-16 h-16 mb-4 color-blue"></i>
-                        <h2 class="text-2xl font-bold mb-4 color-blue">Pode ou Não Pode?</h2>
-                        <p id="question-text" class="text-xl text-center font-semibold"></p>
+        function renderMenuScreen() {
+            screenContainer.innerHTML = `
+                <div class="text-center">
+                    <h1 class="text-6xl md:text-8xl font-black color-blue mb-4">ENEM,</h1>
+                    <h2 class="text-5xl md:text-7xl font-black text-yellow-main mb-8" style="text-shadow: 2px 2px #0057b7;">Tô Dentro!</h2>
+                    <p class="text-center text-lg text-gray-600 mb-10 max-w-md mx-auto">Saiba o que <b>PODE</b> e o que <b>NÃO PODE</b> no dia da prova. ⏳Responda ${TOTAL_QUESTIONS} perguntas no tempo limite!</p>
+                    <div class="flex flex-col space-y-4 w-full max-w-xs mx-auto">
+                        <button onclick="navigate('play')" class="main-button bg-green-500 hover:bg-green-600 text-white flex items-center justify-center">
+                            <i data-lucide="play" class="w-6 h-6 mr-2"></i> JOGAR
+                        </button>
+                        <button onclick="navigate('instructions')" class="main-button bg-blue-main hover:bg-blue-700 text-white flex items-center justify-center">
+                            <i data-lucide="book-open" class="w-6 h-6 mr-2"></i> Instruções
+                        </button>
+                        <button onclick="navigate('ranking')" class="main-button bg-gray-300 hover:bg-gray-400 text-gray-800 flex items-center justify-center">
+                            <i data-lucide="trophy" class="w-6 h-6 mr-2"></i> Ranking
+                        </button>
+                        <button onclick="showModal('Sair', 'Tem certeza que deseja sair? O seu progresso de pontuação local será mantido, mas a rodada atual será perdida.')" class="main-button bg-red-500 hover:bg-red-600 text-white flex items-center justify-center">
+                            <i data-lucide="log-out" class="w-6 h-6 mr-2"></i> Sair
+                        </button>
                     </div>
                     
-                    <!-- VERSO DO CARD (RESPOSTA) -->
-                    <div id="card-back" class="card-face text-center">
-                        <h2 class="text-2xl font-bold mb-4">VEREDICTO:</h2>
-                        <div id="verdict-icon" class="mb-4"></div>
-                        <p id="answer-text" class="text-3xl font-black mb-2"></p>
-                        <p id="details-text" class="text-base mt-2 font-medium"></p>
+                    <footer class="mt-12 pt-8 border-t border-gray-400 w-full max-w-xs mx-auto text-center bg-green-100 rounded-lg shadow-sm">
+                        <p class="text-xs text-gray-600 mb-2">Apoio:</p>
+                        <img 
+                            src="https://www.crede04.seduc.ce.gov.brpng" 
+                            alt="Logo Crede 04 Seduc Ceará" 
+                            class="mx-auto w-40 h-auto rounded-lg shadow-md"
+                            onerror="this.onerror=null; this.src='https://placehold.co/160x75/0057b7/ffd60a?text=CREDE+04';"
+                        >
+                    </footer>
+                </div>
+            `;
+        }
+
+        function renderInstructionsScreen() {
+            screenContainer.innerHTML = `
+                <div class="w-full max-w-2xl">
+                    <h2 class="text-3xl font-bold color-blue mb-6 text-center">Instruções</h2>
+                    <div class="bg-gray-100 p-6 rounded-xl shadow-inner text-gray-700 space-y-4">
+                        <p class="text-lg font-semibold">Olá! Sua missão é simples: saber exatamente o que PODE e o que NÃO PODE no dia prova do ENEM.</p>
+                        
+                        <h3 class="text-xl font-bold text-blue-main">Como Jogar:</h3>
+                        <ul class="list-disc list-inside space-y-2 ml-4">
+                            <li>Você terá <strong>${TOTAL_QUESTIONS} perguntas</strong> para responder.</li>
+                            <li>Para cada pergunta, você terá <strong>${TIME_PER_QUESTION} segundos</strong>.</li>
+                            <li>Selecione <strong>'PODE (👍)'</strong> se o item for <strong>PERMITIDO</strong> ou <strong>OBRIGATÓRIO</strong> pelo Edital.</li>
+                            <li>Selecione <strong>'NÃO PODE (👎)'</strong> se o item for <strong>PROIBIDO</strong> ou uma falha de procedimento.</li>
+                        </ul>
+
+                        <h3 class="text-xl font-bold text-blue-main">Mecânicas de Gamificação:</h3>
+                        <ul class="list-disc list-inside space-y-2 ml-4">
+                            <li><span class="font-bold text-green-500">Acertou:</span> Pontos extras.</li>
+                            <li><span class="font-bold text-yellow-500">Combo de Foco (x3):</span> Ao acertar 3 vezes seguidas, a pontuação dobra!</li>
+                            <li><span class="font-bold text-red-500">Erro Crítico/Tempo Esgotado:</span> Zera o Combo e quebra o Modo Foco. Conta como Erro.</li>
+                        </ul>
+                        <p class="text-center mt-6"><button onclick="navigate('play')" class="main-button bg-green-500 hover:bg-green-600 text-white">Começar Desafio!</button></p>
                     </div>
                 </div>
-            </div>
-
-            <!-- BOTÕES DE AÇÃO -->
-            <div id="choice-buttons" class="grid grid-cols-2 gap-4 w-full max-w-sm">
-                <button id="correct-button" class="main-button bg-green-500 hover:bg-green-600 text-white flex items-center justify-center text-base" onclick="handleChoice(true)">
-                    <i data-lucide="check" class="w-5 h-5 mr-1"></i> PODE
-                </button>
-                <button id="wrong-button" class="main-button bg-red-500 hover:bg-red-600 text-white flex items-center justify-center text-base" onclick="handleChoice(false)">
-                    <i data-lucide="x" class="w-5 h-5 mr-1"></i> NÃO PODE
-                </button>
-            </div>
-            <p id="hint-text" class="text-sm text-gray-500 italic text-center mt-4 hidden">Clique no card para ver a resposta!</p>
-        `;
-    }
-
-    function shuffleDeck() {
-        deck = [...FLASHCARDS];
-        for (let i = deck.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [deck[i], deck[j]] = [deck[j], deck[i]];
+            `;
         }
-    }
-
-    function startGame() {
-        isPlaying = true;
-        score = 0;
-        errors = 0;
-        combo = 0;
-        isFocusMode = false;
-        shuffleDeck();
-        currentCardIndex = -1;
-        updateUI();
-        nextCard();
         
-        // Mostra a dica
-        document.getElementById('hint-text').classList.remove('hidden');
-    }
+        function renderRankingScreen() {
+            let leaderboard = JSON.parse(localStorage.getItem('codexLeaderboard') || '[]');
+            
+            // Ensure data integrity before displaying
+            leaderboard.sort((a, b) => b.score - a.score || a.errors - b.errors);
 
-    function nextCard() {
-        const cardInner = document.querySelector('.card-inner');
-        if (!cardInner) return; // Segurança caso a tela seja trocada
+            let rankList = leaderboard.map((entry, index) => `
+                <li class="flex justify-between items-center p-3 border-b border-gray-200">
+                    <span class="font-black text-xl w-8 text-center text-yellow-main">${index + 1}</span>
+                    <span class="flex-1 font-semibold text-lg text-blue-main">${entry.level || 'Concorrente'}</span>
+                    <span class="font-bold text-green-600 w-16 text-right">${entry.score}</span>
+                    <span class="text-red-500 w-16 text-right">${entry.errors}</span>
+                </li>
+            `).join('');
 
-        isFlipped = false;
-        cardInner.classList.remove('is-flipped');
-        
-        currentCardIndex++;
-        
-        if (currentCardIndex >= deck.length) {
-            endGame();
-            return;
-        }
-
-        const card = deck[currentCardIndex];
-        
-        // Atualiza a frente
-        document.getElementById('question-text').textContent = card.question;
-        document.getElementById('card-icon').setAttribute('data-lucide', card.icon || 'help-circle');
-        
-        // Atualiza o verso
-        const isCorrectCategory = card.category === "CORRETO";
-        document.getElementById('answer-text').textContent = isCorrectCategory ? "PERMITIDO" : "PROIBIDO";
-        document.getElementById('details-text').textContent = card.answer;
-        
-        const cardBack = document.getElementById('card-back');
-        const verdictIcon = document.getElementById('verdict-icon');
-
-        if (card.category === "PROIBIDO") {
-            cardBack.className = 'card-face card-back-wrong';
-            verdictIcon.innerHTML = `<i data-lucide="skull" class="w-10 h-10 text-red-900"></i>`;
-        } else {
-            cardBack.className = 'card-face card-back-correct';
-            verdictIcon.innerHTML = `<i data-lucide="check-circle" class="w-10 h-10 text-green-900"></i>`;
-        }
-        lucide.createIcons();
-    }
-
-    function flipCard() {
-        if (!isPlaying) return;
-        const cardInner = document.querySelector('.card-inner');
-        if (isFlipped) return; // Não vira de volta se já estiver virado
-
-        isFlipped = true;
-        cardInner.classList.add('is-flipped');
-    }
-    
-    // Adiciona o listener para o card flip
-    document.addEventListener('click', (e) => {
-        if (e.target.closest('#flashcard')) {
-            flipCard();
-        }
-    });
-
-
-    function handleChoice(isUserCorrect) {
-        if (!isPlaying || isFlipped) return; 
-        
-        const card = deck[currentCardIndex];
-        const isCardCorrect = card.category === "CORRETO";
-        
-        let isAnswerCorrect = (isUserCorrect === isCardCorrect);
-
-        flipCard(); // Vira o card imediatamente
-        
-        if (isAnswerCorrect) {
-            score++;
-            combo++;
-            spawnFeedback('ACERTO CRÍTICO!', '#0057b7');
-            if (combo >= 3 && !isFocusMode) {
-                activateFocusMode();
+            if (leaderboard.length === 0) {
+                rankList = '<li class="p-4 text-center text-gray-500">Jogue para entrar no Ranking!</li>';
             }
-        } else {
+
+            screenContainer.innerHTML = `
+                <div class="w-full max-w-2xl">
+                    <h2 class="text-3xl font-bold color-blue mb-6 text-center">Ranking do jogador(a)</h2>
+                    <div class="bg-gray-100 p-6 rounded-xl shadow-inner">
+                        <div class="flex justify-between font-bold border-b-2 border-blue-main pb-2 mb-2">
+                            <span class="w-8 text-center">#</span>
+                            <span class="flex-1">Nível</span>
+                            <span class="w-16 text-right">Acertos</span>
+                            <span class="w-16 text-right">Erros</span>
+                        </div>
+                        <ul class="list-none space-y-1">
+                            ${rankList}
+                        </ul>
+                    </div>
+                    <button onclick="localStorage.removeItem('codexLeaderboard'); navigate('ranking')" class="mt-4 text-sm text-red-500 hover:text-red-700 transition">
+                        Limpar Ranking Local
+                    </button>
+                </div>
+            `;
+        }
+        
+        function renderCreditsScreen() {
+            screenContainer.innerHTML = `
+                <div class="w-full max-w-2xl">
+                    <h2 class="text-3xl font-bold color-blue mb-6 text-center">Créditos de Desenvolvimento</h2>
+                    <div class="bg-gray-100 p-6 rounded-xl shadow-inner text-gray-700 text-center space-y-4">
+                        <p class="text-lg font-semibold">🎮 ENEM, Tô Dentro!</p>
+                        <p>Desenvolvido por Gemini (Modelo de Linguagem Grande do Google) como ferramenta de gamificação para revisão do Edital do ENEM.</p>
+                        <p class="font-bold text-blue-main">Recursos Utilizados:</p>
+                        <ul class="list-disc list-inside space-y-1 ml-4 text-left inline-block">
+                            <li>Design: Tailwind CSS (Tema Azul/Amarelo)</li>
+                            <li>Tipografia: Inter Font</li>
+                            <li>Ícones: Lucide Icons & Emojis</li>
+                            <li>Efeito Confete: Canvas Confetti</li>
+                        </ul>
+                        <p class="mt-4">Missão concluída com sucesso. Agora, estude o conteúdo!</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- Funções do Jogo (Flashcards) ---
+
+        function renderGameScreen() {
+            screenContainer.innerHTML = `
+                <div class="w-full max-w-2xl">
+                    <div id="flashcard" class="mb-6 card-appear">
+                        <div class="card-face">
+                            <i id="card-icon" data-lucide="help-circle" class="w-20 h-20 mb-4 color-blue"></i>
+                            <h2 class="text-2xl font-bold mb-4 color-blue">Pode ou Não Pode?</h2>
+                            <p id="question-text" class="text-xl sm:text-2xl font-semibold text-center"></p>
+                        </div>
+                    </div>
+
+                    <div id="choice-buttons" class="grid grid-cols-2 gap-4 w-full max-w-md mx-auto mb-4">
+                        <button id="correct-button" class="main-button bg-blue-main hover:bg-blue-700 text-white flex items-center justify-center text-xl sm:text-2xl" onclick="handleChoice(true)" aria-label="Pode levar">
+                            PODE 👍
+                        </button>
+                        <button id="wrong-button" class="main-button bg-blue-main hover:bg-blue-700 text-white flex items-center justify-center text-xl sm:text-2xl" onclick="handleChoice(false)" aria-label="Não pode levar">
+                            NÃO PODE 👎
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function shuffleDeck() {
+            // Embaralha uma cópia do deck completo para a próxima rodada
+            const shuffled = [...ALL_FLASHCARDS];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            deck = shuffled;
+        }
+
+        function startGame() {
+            isPlaying = true;
+            score = 0;
+            errors = 0;
+            combo = 0;
+            questionCount = 0;
+            isFocusMode = false;
+            gameHistory = []; // Limpa o histórico
+            
+            shuffleDeck();
+            updateUI();
+            nextCard();
+        }
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            
+            timeLeft = TIME_PER_QUESTION;
+            const progressBar = document.getElementById('timer-progress');
+            progressBar.style.width = '100%';
+            progressBar.style.background = 'linear-gradient(90deg, #a855f7, #8b5cf6)';
+
+            timerInterval = setInterval(() => {
+                if (!isPlaying) {
+                    clearInterval(timerInterval);
+                    return;
+                }
+                
+                timeLeft--;
+                const percentage = (timeLeft / TIME_PER_QUESTION) * 100;
+                progressBar.style.width = `${percentage}%`;
+                
+                // Altera a cor se o tempo estiver acabando
+                if (percentage < 30) {
+                     progressBar.style.background = 'linear-gradient(90deg, #ef4444, #dc2626)';
+                } else if (percentage < 60) {
+                     progressBar.style.background = 'linear-gradient(90deg, #f97316, #ea580c)';
+                } else {
+                     progressBar.style.background = 'linear-gradient(90deg, #a855f7, #8b5cf6)';
+                }
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    // Trata como resposta errada por tempo esgotado
+                    handleTimeOut();
+                }
+            }, 1000);
+        }
+        
+        function handleTimeOut() {
+            if (!isPlaying) return; 
+
+            // Resposta incorreta por tempo
             errors++;
-            combo = 0; 
-            spawnFeedback('ERRO CRÍTICO!', '#f87171');
-            if (isFocusMode) {
-                deactivateFocusMode();
+            combo = 0;
+            spawnFeedback('TEMPO ESGOTADO!', '#ef4444');
+            if (isFocusMode) deactivateFocusMode();
+            
+            // Registra no histórico
+            gameHistory.push({
+                question: currentCard.question,
+                userAnswer: 'TEMPO ESGOTADO',
+                correctAnswer: currentCard.category === 'CORRETO' ? 'PODE' : 'NÃO PODE',
+                isCorrect: false,
+                explanation: currentCard.answer
+            });
+            
+            updateUI();
+
+            // Aguarda e passa para a próxima
+            setTimeout(nextCard, 1500);
+        }
+
+        function nextCard() {
+            if (questionCount >= TOTAL_QUESTIONS) {
+                endGame();
+                return;
             }
+
+            if (timerInterval) clearInterval(timerInterval);
+            
+            questionCount++; // Incrementa o contador de questões
+            
+            // Pega a próxima carta do deck embaralhado. Se acabar, embaralha de novo (garantindo 15 perguntas)
+            if (deck.length === 0) {
+                 shuffleDeck();
+            }
+            
+            currentCard = deck.pop(); // Pega e remove a última carta
+
+            // Atualiza a pergunta
+            document.getElementById('question-text').textContent = currentCard.question;
+            document.getElementById('card-icon').setAttribute('data-lucide', currentCard.icon || 'help-circle');
+            
+            // Adiciona animação de entrada
+            const flashcard = document.getElementById('flashcard');
+            flashcard.classList.add('card-appear');
+            
+            lucide.createIcons();
+            updateUI();
+            startTimer(); // Inicia o cronômetro para a nova pergunta
+        }
+
+        function handleChoice(isUserCorrect) {
+            if (!isPlaying) return; 
+            
+            if (timerInterval) clearInterval(timerInterval); // Para o tempo
+            
+            const isCardCorrect = currentCard.category === "CORRETO";
+            
+            // Se PODE for a resposta do usuário, ele está dizendo que é CORRETO.
+            // Se NÃO PODE for a resposta do usuário, ele está dizendo que é PROIBIDO.
+            let isAnswerCorrect = (isUserCorrect === isCardCorrect);
+            
+            // Registra no histórico
+            gameHistory.push({
+                question: currentCard.question,
+                userAnswer: isUserCorrect ? 'PODE' : 'NÃO PODE',
+                correctAnswer: currentCard.category === 'CORRETO' ? 'PODE' : 'NÃO PODE',
+                isCorrect: isAnswerCorrect,
+                explanation: currentCard.answer
+            });
+            
+            if (isAnswerCorrect) {
+                score++;
+                combo++;
+                spawnFeedback('Parabéns!', '#0057b7');
+                triggerConfetti(); // Chama a função de confete!
+                if (combo >= 3 && !isFocusMode) {
+                    activateFocusMode();
+                }
+            } else {
+                errors++;
+                combo = 0; 
+                spawnFeedback('ERRO CRÍTICO!', '#ef4444');
+                if (isFocusMode) {
+                    deactivateFocusMode();
+                }
+            }
+            
+            updateUI();
+
+            // Aguarda 1.5 segundos para o feedback e passa para o próximo card
+            setTimeout(nextCard, 1500);
         }
         
-        updateUI();
-
-        // Aguarda 1.5 segundos para o jogador ler a resposta e passa para o próximo card
-        setTimeout(nextCard, 1500);
-    }
-    
-    function activateFocusMode() {
-        isFocusMode = true;
-        appContainer.classList.add('foco-mode');
-        spawnFeedback('FOCO X2!', '#ffd60a');
-    }
-    
-    function deactivateFocusMode() {
-        isFocusMode = false;
-        appContainer.classList.remove('foco-mode');
-    }
-
-    function spawnFeedback(text, color) {
-        const feedback = document.createElement('div');
-        feedback.textContent = text;
-        feedback.className = 'critical-feedback';
-        feedback.style.color = color;
-        feedbackLayer.appendChild(feedback);
-
-        setTimeout(() => feedback.remove(), 1000);
-    }
-
-    function updateUI() {
-        const currentScore = isFocusMode ? score * 2 : score;
+        function activateFocusMode() {
+            isFocusMode = true;
+            appContainer.classList.add('foco-mode');
+            spawnFeedback('FOCO X2!', '#ffd60a');
+        }
         
-        comboDisplay.textContent = `${combo}x`;
-        scoreDisplay.textContent = currentScore;
-        errorsDisplay.textContent = errors;
-    }
+        function deactivateFocusMode() {
+            isFocusMode = false;
+            appContainer.classList.remove('foco-mode');
+        }
 
-    function endGame() {
-        isPlaying = false;
-        const finalScore = isFocusMode ? score * 2 : score;
-        
-        const isVictory = finalScore > errors;
-        
-        const title = isVictory ? "Parabéns, Agente!" : "Atenção, Agente!";
-        const message = isVictory 
-            ? `Parabéns! Você está pronto para o ENEM 2025! Sua pontuação final é ${finalScore} acertos (com ${errors} erros).`
-            : `Não desanime! Revise o Edital e tente novamente. Sua pontuação é ${finalScore} acertos (com ${errors} erros).`;
-        const buttonText = "Voltar ao Menu Principal";
-        
-        saveScore(finalScore, errors);
-        
-        // Renderiza a tela de feedback final (simulando a tela de vitória/erro)
-        screenContainer.innerHTML = `
-            <div class="text-center p-6 rounded-xl w-full max-w-xs ${isVictory ? 'bg-green-100 border-4 border-green-500' : 'bg-red-100 border-4 border-red-500'}">
-                <i data-lucide="${isVictory ? 'award' : 'alert-triangle'}" class="w-16 h-16 mb-4 ${isVictory ? 'text-green-600' : 'text-red-600'} mx-auto"></i>
-                <h2 class="text-3xl font-black ${isVictory ? 'text-green-600' : 'text-red-600'} mb-2">${title}</h2>
-                <p class="text-lg text-gray-700 mb-6">${message}</p>
-                <button onclick="navigate('menu')" class="main-button ${isVictory ? 'bg-green-500 hover:bg-green-600' : 'bg-blue-main hover:bg-blue-700'} text-white">
-                    ${buttonText}
-                </button>
-            </div>
-        `;
-        lucide.createIcons();
-    }
-    
-    function getKnowledgeLevel(score, errors) {
-        const total = FLASHCARDS.length;
-        const ratio = score / total;
-        
-        if (ratio >= 0.9 && errors === 0) return "Mestre do Edital (100%!)";
-        if (ratio >= 0.7) return "Estrategista de Prova";
-        if (ratio >= 0.5) return "Preparado (Pode Passar)";
-        return "Candidato de Primeira Viagem";
-    }
-    
-    function saveScore(finalScore, finalErrors) {
-        let leaderboard = JSON.parse(localStorage.getItem('codexLeaderboard') || '[]');
-        
-        leaderboard.push({
-            score: finalScore,
-            errors: finalErrors,
-            level: getKnowledgeLevel(finalScore, finalErrors),
-            date: new Date().toLocaleDateString('pt-BR')
-        });
-        
-        leaderboard.sort((a, b) => b.score - a.score || a.errors - b.errors);
-        leaderboard = leaderboard.slice(0, 5); 
-        localStorage.setItem('codexLeaderboard', JSON.stringify(leaderboard));
-    }
-    
-    function showModal(title, text) {
-        modalTitle.textContent = title;
-        modalText.textContent = text;
-        modalContainer.classList.remove('hidden');
-    }
-    
-    function hideModal() {
-        modalContainer.classList.add('hidden');
-    }
+        function spawnFeedback(text, color) {
+            const feedback = document.createElement('div');
+            feedback.textContent = text;
+            feedback.className = 'critical-feedback';
+            feedback.style.color = color;
+            feedbackLayer.appendChild(feedback);
 
+            setTimeout(() => feedback.remove(), 1200);
+        }
+        
+        // Função para disparar confetes
+        function triggerConfetti() {
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#0057b7', '#ffd60a', '#a855f7', '#ef4444', '#16a34a']
+            });
+        }
 
-    // --- Inicialização ---
-    window.onload = () => {
-        navigate('menu'); // Inicia na tela do Menu Principal
-        lucide.createIcons(); 
-    };
+        function updateUI() {
+            const currentScore = isFocusMode ? score * 2 : score;
+            
+            comboDisplay.textContent = `${combo}x`;
+            scoreDisplay.textContent = currentScore;
+            errorsDisplay.textContent = errors;
+            questionCountDisplay.textContent = `${questionCount}/${TOTAL_QUESTIONS}`;
+            
+            // Atualiza acessibilidade
+            const comboAria = document.querySelector('[aria-label="Combo atual"]');
+            const scoreAria = document.querySelector('[aria-label="Acertos"]');
+            const errorsAria = document.querySelector('[aria-label="Erros"]');
+            const questionAria = document.querySelector('[aria-label="Questão atual"]');
+            
+            if (comboAria) comboAria.textContent = `Combo atual: ${combo} vezes`;
+            if (scoreAria) scoreAria.textContent = `Acertos: ${currentScore}`;
+            if (errorsAria) errorsAria.textContent = `Erros: ${errors}`;
+            if (questionAria) questionAria.textContent = `Questão ${questionCount} de ${TOTAL_QUESTIONS}`;
+        }
 
-</script>
+        function endGame() {
+            isPlaying = false;
+            if (timerInterval) clearInterval(timerInterval);
 
+            const finalScore = isFocusMode ? score * 2 : score;
+            
+            const isVictory = finalScore > (TOTAL_QUESTIONS / 2) && errors < (TOTAL_QUESTIONS / 2);
+            
+            const title = isVictory ? "Parabéns!" : "Atenção!";
+            const message = isVictory 
+                ? `Missão cumprida! Sua pontuação final é ${finalScore} acertos (com ${errors} erros). Está preparado(a)!`
+                : `Foco! Sua pontuação é ${finalScore} acertos (com ${errors} erros). Revise os erros e tente novamente.`;
+            
+            saveScore(finalScore, errors);
+            
+            // Renderiza a tela de feedback final 
+            screenContainer.innerHTML = `
+                <div class="text-center p-6 rounded-xl w-full max-w-sm ${isVictory ? 'bg-green-100 border-4 border-green-500' : 'bg-red-100 border-4 border-red-500'}">
+                    <i data-lucide="${isVictory ? 'award' : 'alert-triangle'}" class="w-16 h-16 mb-4 ${isVictory ? 'text-green-600' : 'text-red-600'} mx-auto"></i>
+                    <h2 class="text-3xl font-black ${isVictory ? 'text-green-600' : 'text-red-600'} mb-2">${title}</h2>
+                    <p class="text-lg text-gray-700 mb-6">${message}</p>
+                    <button onclick="navigate('menu')" class="main-button ${isVictory ? 'bg-green-500 hover:bg-green-600' : 'bg-blue-main hover:bg-blue-700'} text-white">
+                        Voltar ao Menu
+                    </button>
+                    <button onclick="showReview()" class="main-button bg-purple-500 hover:bg-purple-600 text-white mt-4">
+                        <i data-lucide="book-open" class="w-5 h-5 mr-2"></i> Revisar Respostas
+                    </button>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+        
+        function showReview() {
+            let reviewHTML = `
+                <div class="w-full max-w-2xl">
+                    <h2 class="text-3xl font-bold color-blue mb-6 text-center">Revisão das Respostas</h2>
+                    <div class="bg-gray-100 p-6 rounded-xl shadow-inner max-h-96 overflow-y-auto">
+            `;
+            
+            gameHistory.forEach((item, index) => {
+                reviewHTML += `
+                    <div class="review-item ${item.isCorrect ? 'review-correct' : 'review-incorrect'}">
+                        <p class="font-bold text-lg mb-2">${index + 1}. ${item.question}</p>
+                        <p class="mb-1">Sua resposta: <span class="font-bold ${item.isCorrect ? 'text-green-600' : 'text-red-600'}">${item.userAnswer}</span></p>
+                        <p class="mb-1">Resposta correta: <span class="font-bold text-green-600">${item.correctAnswer}</span></p>
+                        <p class="text-sm text-gray-700 mt-2">${item.explanation}</p>
+                    </div>
+                `;
+            });
+            
+            reviewHTML += `
+                    </div>
+                    <button onclick="navigate('menu')" class="main-button bg-blue-main hover:bg-blue-700 text-white mt-4">
+                        Voltar ao Menu
+                    </button>
+                </div>
+            `;
+            
+            screenContainer.innerHTML = reviewHTML;
+        }
+        
+        function getKnowledgeLevel(score, errors) {
+            const ratio = score / TOTAL_QUESTIONS;
+            
+            if (ratio >= 0.9 && errors <= 1) return "Mestre do Edital (Quase 100%!)";
+            if (ratio >= 0.7) return "Estrategista de Prova";
+            if (ratio >= 0.5) return "Preparado (Pode Passar)";
+            return "Candidato de Primeira Viagem";
+        }
+        
+        function saveScore(finalScore, finalErrors) {
+            let leaderboard = JSON.parse(localStorage.getItem('codexLeaderboard') || '[]');
+            
+            leaderboard.push({
+                score: finalScore,
+                errors: finalErrors,
+                level: getKnowledgeLevel(finalScore, finalErrors),
+                date: new Date().toLocaleDateString('pt-BR')
+            });
+            
+            leaderboard.sort((a, b) => b.score - a.score || a.errors - b.errors);
+            leaderboard = leaderboard.slice(0, 5); 
+            localStorage.setItem('codexLeaderboard', JSON.stringify(leaderboard));
+        }
+        
+        function showModal(title, text) {
+            modalTitle.textContent = title;
+            modalText.textContent = text;
+            modalContainer.classList.remove('hidden');
+        }
+        
+        function hideModal() {
+            modalContainer.classList.add('hidden');
+        }
+
+        // --- Inicialização ---
+        window.onload = () => {
+            navigate('menu'); // Inicia na tela do Menu Principal
+            lucide.createIcons(); 
+        };
+
+    </script>
 </body>
 </html>
