@@ -454,18 +454,18 @@
                     <h2 class="text-5xl md:text-7xl font-black text-yellow-main mb-8" style="text-shadow: 2px 2px #0057b7;">Tô Dentro!</h2>
                     <p class="text-center text-lg text-gray-600 mb-10 max-w-md mx-auto">Saiba o que <b>PODE</b> e o que <b>NÃO PODE</b> no dia da prova. ⏳Responda ${TOTAL_QUESTIONS} perguntas no tempo limite!</p>
                     <div class="flex flex-col space-y-4 w-full max-w-xs mx-auto">
-                        <button onclick="navigate('play')" class="main-button bg-green-500 hover:bg-green-600 text-white flex items-center justify-center">
-                            <i data-lucide="play" class="w-6 h-6 mr-2"></i> JOGAR
+                         <button onclick="navigate('play')" class="main-button bg-red-500 hover:bg-red-600 text-white flex items-center justify-center">
+                            🎮 JOGAR
                         </button>
                         <button onclick="navigate('instructions')" class="main-button bg-blue-main hover:bg-blue-700 text-white flex items-center justify-center">
-                            <i data-lucide="book-open" class="w-6 h-6 mr-2"></i> Instruções
+                            🧙‍♂️ Instruções
                         </button>
                         <button onclick="navigate('ranking')" class="main-button bg-gray-300 hover:bg-gray-400 text-gray-800 flex items-center justify-center">
-                            <i data-lucide="trophy" class="w-6 h-6 mr-2"></i> Ranking
+                            🏆 Ranking
                         </button>
-                        <button onclick="showModal('Sair', 'Tem certeza que deseja sair? O seu progresso de pontuação local será mantido, mas a rodada atual será perdida.')" class="main-button bg-red-500 hover:bg-red-600 text-white flex items-center justify-center">
-                            <i data-lucide="log-out" class="w-6 h-6 mr-2"></i> Sair
-                        </button>
+                        <button onclick="navigate('credits')" class="main-button bg-green-500 hover:bg-green-600 text-white flex items-center justify-center">
+                            ✨ Créditos
+                        </button>               
                     </div>
                     
                     <footer class="mt-12 pt-8 border-t border-gray-400 w-full max-w-xs mx-auto text-center bg-green-100 rounded-lg shadow-sm">
@@ -552,17 +552,15 @@
             screenContainer.innerHTML = `
                 <div class="w-full max-w-2xl">
                     <h2 class="text-3xl font-bold color-blue mb-6 text-center">Créditos de Desenvolvimento</h2>
-                    <div class="bg-gray-100 p-6 rounded-xl shadow-inner text-gray-700 text-center space-y-4">
+                    <div class="bg-gray-100 p-6 rounded-xl shadow-inner text-gray-700 text-left space-y-4">
                         <p class="text-lg font-semibold">🎮 ENEM, Tô Dentro!</p>
-                        <p>Desenvolvido por Gemini (Modelo de Linguagem Grande do Google) como ferramenta de gamificação para revisão do Edital do ENEM.</p>
-                        <p class="font-bold text-blue-main">Recursos Utilizados:</p>
-                        <ul class="list-disc list-inside space-y-1 ml-4 text-left inline-block">
-                            <li>Design: Tailwind CSS (Tema Azul/Amarelo)</li>
-                            <li>Tipografia: Inter Font</li>
-                            <li>Ícones: Lucide Icons & Emojis</li>
-                            <li>Efeito Confete: Canvas Confetti</li>
-                        </ul>
-                        <p class="mt-4">Missão concluída com sucesso. Agora, estude o conteúdo!</p>
+                        <p class="font-bold text-blue-main">💾 Versão Offline 1.0/2025</p>
+                        <p>🎯 OBJETIVO: Desenvolvido como ferramenta de gamificação para motivar os estudantes na revisão do Edital do ENEM 2025.</p>
+                        
+                        <p class="mt-4">👥 EQUIPE AGI/CEDEA CREDE 4 - Camocim/CE:
+                        <br> <a href="https://www.instagram.com/liradutraoficial">José Lira Dutra</a> [Programação, design com auxilio de IA.]
+                        <br> Cláudia Faustino [Curadoria e revisão de texto]
+                        <br> Cleidiane e Gabriel [Curadoria, revisão de texto e revisão final]</p>
                     </div>
                 </div>
             `;
